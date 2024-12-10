@@ -6,12 +6,12 @@
 
 ## Features
 
--   **Sparse Vector Representation**: Efficiently store vectors with non-zero values only.
--   **Vector Operations**: Includes methods for scaling, normalizing, and calculating cosine similarity.
+- **Sparse Vector Representation**: Efficiently store vectors with non-zero values only.
+- **Vector Operations**: Includes methods for scaling, normalizing, and calculating cosine similarity.
 
 ## Prerequisites
 
--   Go 1.23.0 or above
+- Go 1.23.0 or above
 
 ## Installation
 
