@@ -11,7 +11,7 @@
 
 ## Prerequisites
 
-- Go 1.23.0 or above
+- Go 1.24.0 or above
 
 ## Installation
 
