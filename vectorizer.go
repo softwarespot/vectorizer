@@ -22,8 +22,8 @@ func New[T comparable](size int) *Vectorizer[T] {
 	}
 }
 
-// ApplyTo applies a value to the vector at the specified key.
-func (vz *Vectorizer[T]) ApplyTo(v *Vector[T], key T, value float64) {
+// Add applies a value to the vector at the specified key.
+func (vz *Vectorizer[T]) Add(v *Vector[T], key T, value float64) {
 	dim, ok := vz.dimByKey[key]
 	if !ok {
 		vz.dim += 1
@@ -40,14 +40,15 @@ type Vector[T comparable] struct {
 
 	// An internal flag to indicate if the magnitude needs to be recalculated,
 	// due to a change in the vector's data.
-	reCacheMagnitude bool
+	calculateMagnitude bool
 }
 
 // NewVector creates a new empty Vector.
 func NewVector[T comparable]() *Vector[T] {
 	return &Vector[T]{
-		data:             map[int]float64{},
-		reCacheMagnitude: true,
+		data:               map[int]float64{},
+		cachedMagnitude:    0,
+		calculateMagnitude: true,
 	}
 }
 
@@ -59,13 +60,21 @@ func (v *Vector[T]) Add(dim int, value float64) {
 	}
 
 	v.data[dim] += value
-	v.reCacheMagnitude = true
+	v.calculateMagnitude = true
+}
+
+// Delete deletes a dimension from the vector.
+func (v *Vector[T]) Delete(dim int) {
+	if _, exists := v.data[dim]; exists {
+		delete(v.data, dim)
+		v.calculateMagnitude = true
+	}
 }
 
 // Magnitude calculates the magnitude of the vector.
-// NOTE: This method caches the magnitude for performance.
+// OPTIMIZATION: The method caches the magnitude, if the vector has not changed since the last calculation.
 func (v *Vector[T]) Magnitude() float64 {
-	if !v.reCacheMagnitude {
+	if !v.calculateMagnitude {
 		return v.cachedMagnitude
 	}
 
@@ -76,7 +85,7 @@ func (v *Vector[T]) Magnitude() float64 {
 	magnitude = math.Sqrt(magnitude)
 
 	v.cachedMagnitude = magnitude
-	v.reCacheMagnitude = false
+	v.calculateMagnitude = false
 
 	return magnitude
 }
@@ -101,12 +110,12 @@ func (v *Vector[T]) DotProduct(v2 *Vector[T]) float64 {
 func (v *Vector[T]) CosineSimilarity(v2 *Vector[T]) (float64, error) {
 	magnitude1 := v.Magnitude()
 	if magnitude1 == 0 {
-		return 0, errors.New("cosine similarity cannot be calculated for the first vector, as it's 0")
+		return 0, errors.New("Vector: first vector has zero magnitude")
 	}
 
 	magnitude2 := v2.Magnitude()
 	if magnitude2 == 0 {
-		return 0, errors.New("cosine similarity cannot be calculated for the second vector, as it's 0")
+		return 0, errors.New("Vector: second vector has zero magnitude")
 	}
 	return cosineSimilarity(v, v2, magnitude1, magnitude2), nil
 }
@@ -130,7 +139,7 @@ func (v *Vector[T]) Scale(scalar float64) {
 	for dim := range v.data {
 		v.data[dim] *= scalar
 	}
-	v.reCacheMagnitude = true
+	v.calculateMagnitude = true
 }
 
 // String returns a string representation of the vector.
