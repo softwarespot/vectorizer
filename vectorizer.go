@@ -35,17 +35,17 @@ func (vz *Vectorizer[T]) Add(v *Vector[T], key T, value float64) {
 
 // Vector represents a sparse vector.
 type Vector[T comparable] struct {
-	data                 map[int]float64
-	cachedMagnitude      float64
-	reCalculateMagnitude bool
+	data             map[int]float64
+	cachedMagnitude  float64
+	isMagnitudeDirty bool
 }
 
 // NewVector creates a new empty Vector.
 func NewVector[T comparable]() *Vector[T] {
 	return &Vector[T]{
-		data:                 map[int]float64{},
-		cachedMagnitude:      0,
-		reCalculateMagnitude: true,
+		data:             map[int]float64{},
+		cachedMagnitude:  0,
+		isMagnitudeDirty: true,
 	}
 }
 
@@ -57,21 +57,21 @@ func (v *Vector[T]) Add(dim int, value float64) {
 	}
 
 	v.data[dim] += value
-	v.reCalculateMagnitude = true
+	v.isMagnitudeDirty = true
 }
 
 // Delete deletes a dimension from the vector.
 func (v *Vector[T]) Delete(dim int) {
 	if _, ok := v.data[dim]; ok {
 		delete(v.data, dim)
-		v.reCalculateMagnitude = true
+		v.isMagnitudeDirty = true
 	}
 }
 
 // Magnitude calculates the magnitude of the vector.
 // OPTIMIZATION: The method caches the magnitude, if the vector has not changed since the last calculation.
 func (v *Vector[T]) Magnitude() float64 {
-	if !v.reCalculateMagnitude {
+	if !v.isMagnitudeDirty {
 		return v.cachedMagnitude
 	}
 
@@ -82,7 +82,7 @@ func (v *Vector[T]) Magnitude() float64 {
 	magnitude = math.Sqrt(magnitude)
 
 	v.cachedMagnitude = magnitude
-	v.reCalculateMagnitude = false
+	v.isMagnitudeDirty = false
 
 	return magnitude
 }
@@ -136,7 +136,7 @@ func (v *Vector[T]) Scale(scalar float64) {
 	for dim := range v.data {
 		v.data[dim] *= scalar
 	}
-	v.reCalculateMagnitude = true
+	v.isMagnitudeDirty = true
 }
 
 // ToDense converts the sparse vector to a dense representation.
