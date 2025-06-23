@@ -44,4 +44,5 @@ func Test_New(t *testing.T) {
 	vz2.ApplyTo(cv2, ck2, 1)
 
 	t.Log(cv1.CosineSimilarity(cv2))
+	t.Log(cv1.String())
 }

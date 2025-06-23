@@ -2,7 +2,10 @@ package vectorizer
 
 import (
 	"errors"
+	"fmt"
 	"math"
+	"sort"
+	"strings"
 )
 
 // Vectorizer is a structure that manages dimensions for vectors.
@@ -121,4 +124,25 @@ func (v *Vector[T]) Normalize() {
 
 func cosineSimilarity[T comparable](v1, v2 *Vector[T], magnitude1, magnitude2 float64) float64 {
 	return v1.dotProduct(v2) / (magnitude1 * magnitude2)
+}
+
+// String returns a string representation of the vector.
+func (v *Vector[T]) String() string {
+	var b strings.Builder
+	b.WriteString("Vector{")
+
+	dims := make([]int, 0, len(v.data))
+	for dim := range v.data {
+		dims = append(dims, dim)
+	}
+	sort.Ints(dims)
+
+	for i, dim := range dims {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		fmt.Fprintf(&b, "%d:%.4f", dim, v.data[dim])
+	}
+	b.WriteString("}")
+	return b.String()
 }
