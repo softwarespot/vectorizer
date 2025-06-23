@@ -26,23 +26,26 @@ func Test_New(t *testing.T) {
 		ID   int
 		Name string
 	}
-	ck1 := CustomKey{
-		ID:   1,
-		Name: "A",
-	}
-	ck2 := CustomKey{
-		ID:   1,
-		Name: "A",
-	}
+	ck1 := CustomKey{ID: 1, Name: "A"}
+	ck2 := CustomKey{ID: 1, Name: "A"}
+	ck3 := CustomKey{ID: 2, Name: "B"}
+	ck4 := CustomKey{ID: 3, Name: "C"}
 
 	vz2 := New[CustomKey](128)
 
 	cv1 := NewVector[CustomKey]()
 	vz2.Add(cv1, ck1, 1)
+	vz2.Add(cv1, ck3, 2)
+	vz2.Add(cv1, ck4, 3)
 
 	cv2 := NewVector[CustomKey]()
 	vz2.Add(cv2, ck2, 1)
+	vz2.Add(cv2, ck4, 5)
 
 	t.Log(cv1.CosineSimilarity(cv2))
+	t.Log(cv1.ToDense())
 	t.Log(cv1.String())
+
+	t.Log(cv2.ToDense())
+	t.Log(cv2.String())
 }

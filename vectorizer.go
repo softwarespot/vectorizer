@@ -35,11 +35,8 @@ func (vz *Vectorizer[T]) Add(v *Vector[T], key T, value float64) {
 
 // Vector represents a sparse vector.
 type Vector[T comparable] struct {
-	data            map[int]float64
-	cachedMagnitude float64
-
-	// An internal flag to indicate if the magnitude needs to be recalculated,
-	// due to a change in the vector's data.
+	data               map[int]float64
+	magnitude          float64
 	calculateMagnitude bool
 }
 
@@ -47,7 +44,7 @@ type Vector[T comparable] struct {
 func NewVector[T comparable]() *Vector[T] {
 	return &Vector[T]{
 		data:               map[int]float64{},
-		cachedMagnitude:    0,
+		magnitude:          0,
 		calculateMagnitude: true,
 	}
 }
@@ -75,7 +72,7 @@ func (v *Vector[T]) Delete(dim int) {
 // OPTIMIZATION: The method caches the magnitude, if the vector has not changed since the last calculation.
 func (v *Vector[T]) Magnitude() float64 {
 	if !v.calculateMagnitude {
-		return v.cachedMagnitude
+		return v.magnitude
 	}
 
 	var magnitude float64
@@ -84,7 +81,7 @@ func (v *Vector[T]) Magnitude() float64 {
 	}
 	magnitude = math.Sqrt(magnitude)
 
-	v.cachedMagnitude = magnitude
+	v.magnitude = magnitude
 	v.calculateMagnitude = false
 
 	return magnitude
@@ -140,6 +137,28 @@ func (v *Vector[T]) Scale(scalar float64) {
 		v.data[dim] *= scalar
 	}
 	v.calculateMagnitude = true
+}
+
+// ToDense converts the sparse vector to a dense representation.
+// It returns a slice of float64 where the index represents the dimension.
+// If the vector is empty, it returns nil.
+func (v *Vector[T]) ToDense() []float64 {
+	if len(v.data) == 0 {
+		return nil
+	}
+
+	maxDim := 0
+	for dim := range v.data {
+		if dim > maxDim {
+			maxDim = dim
+		}
+	}
+
+	dense := make([]float64, maxDim+1)
+	for dim, value := range v.data {
+		dense[dim] = value
+	}
+	return dense
 }
 
 // String returns a string representation of the vector.
