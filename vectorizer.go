@@ -111,12 +111,8 @@ func (v *Vector[T]) CosineSimilarity(v2 *Vector[T]) (float64, error) {
 	return cosineSimilarity(v, v2, magnitude1, magnitude2), nil
 }
 
-// Scale multiplies all elements of the vector by a scalar value.
-func (v *Vector[T]) Scale(scalar float64) {
-	for dim := range v.data {
-		v.data[dim] *= scalar
-	}
-	v.reCacheMagnitude = true
+func cosineSimilarity[T comparable](v1, v2 *Vector[T], magnitude1, magnitude2 float64) float64 {
+	return v1.DotProduct(v2) / (magnitude1 * magnitude2)
 }
 
 // Normalize scales the vector to have a magnitude of 1.
@@ -129,8 +125,12 @@ func (v *Vector[T]) Normalize() {
 	v.Scale(1 / magnitude)
 }
 
-func cosineSimilarity[T comparable](v1, v2 *Vector[T], magnitude1, magnitude2 float64) float64 {
-	return v1.DotProduct(v2) / (magnitude1 * magnitude2)
+// Scale multiplies all elements of the vector by a scalar value.
+func (v *Vector[T]) Scale(scalar float64) {
+	for dim := range v.data {
+		v.data[dim] *= scalar
+	}
+	v.reCacheMagnitude = true
 }
 
 // String returns a string representation of the vector.
