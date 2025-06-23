@@ -30,13 +30,16 @@ func (vz *Vectorizer[T]) ApplyTo(v *Vector[T], key T, value float64) {
 		dim = vz.dim
 		vz.dimByKey[key] = dim
 	}
-	v.apply(dim, value)
+	v.Add(dim, value)
 }
 
 // Vector represents a sparse vector.
 type Vector[T comparable] struct {
-	data             map[int]float64
-	cachedMagnitude  float64
+	data            map[int]float64
+	cachedMagnitude float64
+
+	// An internal flag to indicate if the magnitude needs to be recalculated,
+	// due to a change in the vector's data.
 	reCacheMagnitude bool
 }
 
@@ -48,7 +51,9 @@ func NewVector[T comparable]() *Vector[T] {
 	}
 }
 
-func (v *Vector[T]) apply(dim int, value float64) {
+// Add adds a value to the vector at the specified dimension.
+// NOTE: When the value is zero, it is not added to the vector.
+func (v *Vector[T]) Add(dim int, value float64) {
 	if value == 0 {
 		return
 	}
@@ -57,7 +62,9 @@ func (v *Vector[T]) apply(dim int, value float64) {
 	v.reCacheMagnitude = true
 }
 
-func (v *Vector[T]) magnitude() float64 {
+// Magnitude calculates the magnitude of the vector.
+// NOTE: This method caches the magnitude for performance.
+func (v *Vector[T]) Magnitude() float64 {
 	if !v.reCacheMagnitude {
 		return v.cachedMagnitude
 	}
@@ -74,8 +81,8 @@ func (v *Vector[T]) magnitude() float64 {
 	return magnitude
 }
 
-func (v *Vector[T]) dotProduct(v2 *Vector[T]) float64 {
-	// Iterate over the smaller vector
+// DotProduct calculates the dot product with another vector.
+func (v *Vector[T]) DotProduct(v2 *Vector[T]) float64 {
 	if len(v.data) > len(v2.data) {
 		v, v2 = v2, v
 	}
@@ -90,14 +97,14 @@ func (v *Vector[T]) dotProduct(v2 *Vector[T]) float64 {
 }
 
 // CosineSimilarity calculates the cosine similarity between two vectors.
-// It returns an error if either vector has zero magnitude.
+// It returns an error if either vector has a zero magnitude.
 func (v *Vector[T]) CosineSimilarity(v2 *Vector[T]) (float64, error) {
-	magnitude1 := v.magnitude()
+	magnitude1 := v.Magnitude()
 	if magnitude1 == 0 {
 		return 0, errors.New("cosine similarity cannot be calculated for the first vector, as it's 0")
 	}
 
-	magnitude2 := v2.magnitude()
+	magnitude2 := v2.Magnitude()
 	if magnitude2 == 0 {
 		return 0, errors.New("cosine similarity cannot be calculated for the second vector, as it's 0")
 	}
@@ -113,9 +120,9 @@ func (v *Vector[T]) Scale(scalar float64) {
 }
 
 // Normalize scales the vector to have a magnitude of 1.
-// If the vector has zero magnitude, it remains unchanged.
+// NOTE: If the vector has zero magnitude, it remains unchanged.
 func (v *Vector[T]) Normalize() {
-	magnitude := v.magnitude()
+	magnitude := v.Magnitude()
 	if magnitude == 0 {
 		return
 	}
@@ -123,7 +130,7 @@ func (v *Vector[T]) Normalize() {
 }
 
 func cosineSimilarity[T comparable](v1, v2 *Vector[T], magnitude1, magnitude2 float64) float64 {
-	return v1.dotProduct(v2) / (magnitude1 * magnitude2)
+	return v1.DotProduct(v2) / (magnitude1 * magnitude2)
 }
 
 // String returns a string representation of the vector.
