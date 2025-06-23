@@ -65,7 +65,7 @@ func (v *Vector[T]) Add(dim int, value float64) {
 
 // Delete deletes a dimension from the vector.
 func (v *Vector[T]) Delete(dim int) {
-	if _, exists := v.data[dim]; exists {
+	if _, ok := v.data[dim]; ok {
 		delete(v.data, dim)
 		v.calculateMagnitude = true
 	}
