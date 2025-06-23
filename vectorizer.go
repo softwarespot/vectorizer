@@ -22,7 +22,7 @@ func New[T comparable](size int) *Vectorizer[T] {
 	}
 }
 
-// Add applies a value to the vector at the specified key.
+// Add adds a value to the vector for the specified key.
 func (vz *Vectorizer[T]) Add(v *Vector[T], key T, value float64) {
 	dim, ok := vz.dimByKey[key]
 	if !ok {
