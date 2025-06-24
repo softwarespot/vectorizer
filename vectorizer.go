@@ -27,8 +27,8 @@ func (vz *Vectorizer[T]) Add(v *Vector[T], key T, value float64) {
 	dim, ok := vz.dimByKey[key]
 	if !ok {
 		vz.dim += 1
+		vz.dimByKey[key] = vz.dim
 		dim = vz.dim
-		vz.dimByKey[key] = dim
 	}
 	v.Add(dim, value)
 }
